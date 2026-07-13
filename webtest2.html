@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>For Your Birthday</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: sans-serif;
+}
+
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #fbc2eb, #a6c1ee);
+}
+
+.menu {
+    display: grid;
+    grid-template-columns: repeat(2, 200px);
+    gap: 30px;
+    transition: 0.3s;
+}
+
+.menu.blur {
+    filter: blur(6px);
+    opacity: 0.5;
+}
+
+.card {
+    width: 200px;
+    height: 120px;
+    background: #f3e6ea;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    transition: 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-8px) scale(1.05);
+}
+
+.card img {
+    width: 50px;
+    margin-bottom: 10px;
+    background: rgba(255, 182, 193, 0.3);
+    padding: 10px;
+    border-radius: 50%;
+}
+
+.card p {
+    color: #6aa6c9;
+    font-weight: bold;
+}
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(8px);
+}
+
+.overlay.active {
+    display: flex;
+}
+
+.player {
+    width: 650px;
+    height: 340px;
+    backdrop-filter: blur(15px);
+    background: rgba(255,255,255,0.6);
+    border-radius: 20px;
+    display: flex;
+    padding: 20px;
+    position: relative;
+    animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.9);}
+    to { opacity: 1; transform: scale(1);}
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    cursor: pointer;
+}
+
+.left {
+    width: 40%;
+    text-align: center;
+}
+
+.disk {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    margin: auto;
+    animation: spin 5s linear infinite;
+    animation-play-state: paused;
+}
+
+.disk img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg);}
+    to { transform: rotate(360deg);}
+}
+
+.title {
+    margin-top: 10px;
+    color: #ff2e88;
+    font-weight: bold;
+}
+
+.progress input {
+    width: 100%;
+    height: 6px;
+}
+
+.time {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+}
+
+.controls {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+button {
+    border: none;
+    background: #ff2e88;
+    color: white;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.right {
+    width: 60%;
+    padding-left: 20px;
+    overflow-y: auto;
+}
+
+.song {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    background: rgba(255,255,255,0.5);
+}
+
+.song.active {
+    background: #ff2e88;
+    color: white;
+}
+.letter-box {
+    width: auto;
+    height:auto;
+    background: #f5e1ef;
+    border-radius: 20px;
+    padding: 20px;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    animation: fadeIn 0.4s ease;
+}
+
+.letter-content {
+    font-family: "Segoe Script", cursive;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #fb0606;
+    text-align: center;
+}
+
+.letter-box::before {
+    content: "🌸";
+    position: absolute;
+    top: 10px;
+    left: 10px;
+}
+
+.letter-box::after {
+    content: "💖";
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="menu" id="menu">
+    <div class="card" onclick="openMusic()">
+      <img src="https://raw.githubusercontent.com/thanhbinhz2808-wq/music/main/headphone1.png">
+        <p>Music</p>
+    </div>
+    <div class="card" onclick="openLetter()">
+         <img src="https://cdn-icons-png.flaticon.com/512/561/561127.png">
+        <p>Letter</p></div>
+
+    <div class="card">
+         <img src="https://raw.githubusercontent.com/thanhbinhz2808-wq/music/main/wedding-photography.png">
+        <p>Image</p></div>
+        
+    <div class="card">
+         <img src="https://raw.githubusercontent.com/thanhbinhz2808-wq/music/main/heart.png">
+        <p>Gift</p></div>
+
+</div>
+
+<div class="overlay" id="overlay">
+<div class="player">
+
+<div class="close" onclick="closeMusic()">✖</div>
+
+<div class="left">
+    <div class="disk" id="disk">
+        <img id="cover">
+    </div>
+
+    <div id="title" class="title"></div>
+
+    <div class="progress">
+        <input type="range" id="seek">
+    </div>
+
+    <div class="time">
+        <span id="current">0:00</span>
+        <span id="duration">0:00</span>
+    </div>
+
+    <div class="controls">
+        <button onclick="prevSong()">⏮</button>
+        <button id="playBtn" onclick="togglePlay()">▶</button>
+        <button onclick="nextSong()">⏭</button>
+    </div>
+</div>
+
+<div class="right" id="list"></div>
+
+</div>
+</div>
+
+<audio id="audio"></audio>
+
+<!-- LETTER -->
+<div class="overlay" id="letterOverlay">
+    <div class="letter-box">
+
+        <div class="close" onclick="closeLetter()">✖</div>
+
+        <div class="letter-content">
+            <p>
+                Hôm nay là một ngày thật đặc biệt, bởi đó là ngày em đến với thế giới này.
+                Anh muốn gửi đến em những lời chúc tốt đẹp nhất nhân dịp sinh nhật.
+                Chúc em luôn xinh đẹp, vui vẻ và hạnh phúc.
+                Mong rằng tuổi mới sẽ mang đến cho em thật nhiều niềm vui,
+                may mắn và những điều tuyệt vời trong cuộc sống.
+                <br><br>
+                Cảm ơn em vì đã luôn ở bên anh,
+                mang đến cho anh những khoảnh khắc ý nghĩa ❤️
+            </p>
+        </div>
+
+    </div>
+</div>
+<script>
+const menu = document.getElementById("menu");
+const overlay = document.getElementById("overlay");
+
+function openMusic() {
+    overlay.classList.add("active");
+    menu.classList.add("blur");
+
+    audio.play().then(()=>{
+        disk.style.animationPlayState = "running";
+        playBtn.innerText = "⏸";
+    }).catch(()=>{});
+}
+
+function closeMusic() {
+    overlay.classList.remove("active");
+    menu.classList.remove("blur");
+}
+
+const audio = document.getElementById("audio");
+const list = document.getElementById("list");
+const title = document.getElementById("title");
+const cover = document.getElementById("cover");
+const seek = document.getElementById("seek");
+const disk = document.getElementById("disk");
+const currentTimeEl = document.getElementById("current");
+const durationEl = document.getElementById("duration");
+const playBtn = document.getElementById("playBtn");
+
+const songs = [
+{
+    name: "Chờ Bao Lâu x Tấm Lòng Cửu Long",
+    src: "https://files.catbox.moe/660sqn.mp3",
+    img: "https://raw.githubusercontent.com/thanhbinhz2808-wq/music/main/meo1.jpg"
+},
+{
+    name: "Hồng Nhan x Bạc Phận",
+    src: "https://raw.githubusercontent.com/thanhbinhz2808-wq/music/main/hongnhan.mp3",
+    img: "https://raw.githubusercontent.com/thanhbinhz2808-wq/music/main/meo2.jpg"
+},
+{
+    name: "Ai Mang Cô Đơn Đi",
+    src: "https://raw.githubusercontent.com/thanhbinhz2808-wq/music/main/Ai_Mang_Cô_Đơn_Đi_Bảo_Teng_x_Bibo_Remix_-_K-ICM_APJ_KLICKAUD.mp3",
+    img: "https://raw.githubusercontent.com/thanhbinhz2808-wq/music/main/meo3.jpg"
+},
+{
+    name: "Nắng x Mưa x Gió x Mây",
+    src: "https://raw.githubusercontent.com/thanhbinhz2808-wq/music/main/Nang_x_May_x_Gio_x_Mua_Remix_-_Nhạc_Hot_TikTok_2025-_Producer_Haiyang_KLICKAUD.mp3",
+    img: "https://raw.githubusercontent.com/thanhbinhz2808-wq/music/main/meo4.jpg"
+},
+{
+    name: "Tìm Em x Cô Ta",
+    src: "https://raw.githubusercontent.com/thanhbinhz2808-wq/music/main/TÌM_EM_X_CÔ_TA_-_COLDZ_REMIX_KLICKAUD.mp3",
+    img: "https://raw.githubusercontent.com/thanhbinhz2808-wq/music/main/meo5.jpg"
+}
+];
+
+let current = 0;
+
+function render() {
+    list.innerHTML = "";
+    songs.forEach((s, i) => {
+        const div = document.createElement("div");
+        div.className = "song" + (i === current ? " active" : "");
+        div.innerText = s.name;
+        div.onclick = () => loadSong(i);
+        list.appendChild(div);
+    });
+}
+
+function loadSong(i) {
+    current = i;
+    audio.src = songs[i].src;
+    title.innerText = songs[i].name;
+    cover.src = songs[i].img;
+
+    disk.style.animationPlayState = "paused";
+    playBtn.innerText = "▶";
+
+    render();
+}
+
+function togglePlay() {
+    if (audio.paused) {
+        audio.play();
+        disk.style.animationPlayState = "running";
+        playBtn.innerText = "⏸";
+    } else {
+        audio.pause();
+        disk.style.animationPlayState = "paused";playBtn.innerText = "▶";
+    }
+}
+
+function nextSong() {
+    current = (current + 1) % songs.length;
+    loadSong(current);
+    audio.play();
+}
+
+function prevSong() {
+    current = (current - 1 + songs.length) % songs.length;
+    loadSong(current);
+    audio.play();
+}
+
+audio.ontimeupdate = () => {
+    if (!audio.duration) return;
+    seek.max = audio.duration;
+    seek.value = audio.currentTime;
+
+    currentTimeEl.innerText =
+        Math.floor(audio.currentTime/60)+":"+String(Math.floor(audio.currentTime%60)).padStart(2,"0");
+
+    durationEl.innerText =
+        Math.floor(audio.duration/60)+":"+String(Math.floor(audio.duration%60)).padStart(2,"0");
+};
+
+seek.oninput = () => {
+    audio.currentTime = seek.value;
+};
+
+audio.onended = () => nextSong();
+
+loadSong(0);
+render();
+
+const letterOverlay = document.getElementById("letterOverlay");
+
+function openLetter() {
+    letterOverlay.classList.add("active");
+    menu.classList.add("blur");
+}
+
+function closeLetter() {
+    letterOverlay.classList.remove("active");
+    menu.classList.remove("blur");
+}
+</script>
+
+</body>
+</html>
