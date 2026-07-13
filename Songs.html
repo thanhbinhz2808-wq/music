@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Music Player Pro</title>
+
+<style>
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #fbc2eb, #a6c1ee);
+    font-family: sans-serif;
+}
+
+.player {
+    width: 650px;
+    height: 340px;
+    backdrop-filter: blur(15px);
+    background: rgba(255,255,255,0.4);
+    border-radius: 20px;
+    display: flex;
+    padding: 20px;
+}
+
+.left {
+    width: 40%;
+    text-align: center;
+}
+
+.disk {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    margin: auto;
+    animation: spin 5s linear infinite;
+    animation-play-state: paused;
+}
+
+.disk img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.title {
+    margin-top: 10px;
+    color: #ff2e88;
+    font-weight: bold;
+}
+
+.progress input {
+    width: 100%;
+    appearance: none;
+    height: 6px;
+    border-radius: 5px;
+    background: linear-gradient(to right, #ff2e88 0%, #ddd 0%);
+    outline: none;
+}
+
+/* TIME */
+.time {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+.controls {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+button {
+    border: none;
+    background: #ff2e88;
+    color: white;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    transition: 0.2s;
+}
+
+button:hover {
+    transform: scale(1.1);
+    background: #ff4fa3;
+}
+
+button:active {
+    transform: scale(0.9);
+}
+
+/* RIGHT */
+.right {
+    width: 60%;
+    padding-left: 20px;
+    overflow-y: auto;
+}
+
+.song {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    background: rgba(255,255,255,0.5);
+    transition: 0.2s;
+}
+
+.song:hover {
+    background: rgba(255,255,255,0.8);
+}
+
+.song.active {
+    background: #ff2e88;
+    color: white;
+}
+</style>
+</head>
+
+<body>
+
+<div class="player">
+
+<div class="left">
+    <div class="disk" id="disk">
+        <img id="cover" src="">
+    </div>
+
+    <div id="title" class="title"></div>
+
+    <div class="progress">
+        <input type="range" id="seek" value="0">
+    </div>
+
+    <div class="time">
+        <span id="current">0:00</span>
+        <span id="duration">0:00</span>
+    </div>
+
+    <div class="controls">
+        <button onclick="prevSong()">⏮</button>
+        <button id="playBtn" onclick="togglePlay()">▶</button>
+        <button onclick="nextSong()">⏭</button>
+    </div>
+</div>
+
+<div class="right" id="list"></div>
+
+</div>
+
+<audio id="audio"></audio>
+
+<script>
+const audio = document.getElementById("audio");
+const list = document.getElementById("list");
+const title = document.getElementById("title");
+const cover = document.getElementById("cover");
+const seek = document.getElementById("seek");
+const disk = document.getElementById("disk");
+const currentTimeEl = document.getElementById("current");
+const durationEl = document.getElementById("duration");
+const playBtn = document.getElementById("playBtn");
+
+const songs = [
+{
+    name: "Chờ Bao Lâu x Tấm Lòng Cửu Long",
+    src: "https://files.catbox.moe/660sqn.mp3",
+    img: "https://raw.githubusercontent.com/thanhbinhz2808-wq/music/main/meo1.jpg"
+},
+{
+    name: "Hồng Nhan x Bạc Phận",
+    src: "https://raw.githubusercontent.com/thanhbinhz2808-wq/music/main/hongnhan.mp3",
+    img: "https://raw.githubusercontent.com/thanhbinhz2808-wq/music/main/meo2.jpg"
+},
+{
+    name: "Ai Mang Cô Đơn Đi",
+    src: "https://raw.githubusercontent.com/thanhbinhz2808-wq/music/main/Ai_Mang_Cô_Đơn_Đi_Bảo_Teng_x_Bibo_Remix_-_K-ICM_APJ_KLICKAUD.mp3",
+    img: "https://raw.githubusercontent.com/thanhbinhz2808-wq/music/main/meo3.jpg"
+},
+{
+    name: "Nắng x Mưa x Gió x Mây",
+    src: "https://raw.githubusercontent.com/thanhbinhz2808-wq/music/main/Nang_x_May_x_Gio_x_Mua_Remix_-_Nhạc_Hot_TikTok_2025-_Producer_Haiyang_KLICKAUD.mp3",
+    img: "https://raw.githubusercontent.com/thanhbinhz2808-wq/music/main/meo4.jpg"
+},
+{
+    name: "Tìm Em x Cô Ta",
+    src: "https://raw.githubusercontent.com/thanhbinhz2808-wq/music/main/TÌM_EM_X_CÔ_TA_-_COLDZ_REMIX_KLICKAUD.mp3",
+    img: "https://raw.githubusercontent.com/thanhbinhz2808-wq/music/main/meo5.jpg"
+},
+];
+
+let current = 0;
+
+function formatTime(time) {
+    let min = Math.floor(time / 60);
+    let sec = Math.floor(time % 60);
+    sec = sec < 10 ? "0" + sec : sec;
+    return min + ":" + sec;
+}
+
+function render() {
+    list.innerHTML = "";
+    songs.forEach((s, i) => {
+        const div = document.createElement("div");
+        div.className = "song" + (i === current ? " active" : "");
+        div.innerText = s.name;
+        div.onclick = () => loadSong(i);
+        list.appendChild(div);
+    });
+}
+
+function loadSong(i) {
+    current = i;
+    audio.src = songs[i].src;
+    title.innerText = songs[i].name;
+    cover.src = songs[i].img;
+    audio.play();
+    disk.style.animationPlayState = "running";
+    playBtn.innerText = "⏸";
+    render();
+}
+
+function togglePlay() {
+    if (audio.paused) {
+        audio.play();
+        disk.style.animationPlayState = "running";
+        playBtn.innerText = "⏸";
+    } else {
+        audio.pause();
+        disk.style.animationPlayState = "paused";
+        playBtn.innerText = "▶";
+    }
+}
+
+function nextSong() {
+    current = (current + 1) % songs.length;
+    loadSong(current);
+}
+
+function prevSong() {
+    current = (current - 1 + songs.length) % songs.length;
+    loadSong(current);
+}
+
+audio.onended = () => {
+    playBtn.innerText = "▶";
+    nextSong();
+};
+
+audio.onloadedmetadata = () => {
+    durationEl.innerText = formatTime(audio.duration);
+};
+
+audio.ontimeupdate = () => {
+    if (!audio.duration) return;
+
+    seek.max = audio.duration;
+    seek.value = audio.currentTime;
+
+    currentTimeEl.innerText = formatTime(audio.currentTime);
+    let percent = (audio.currentTime / audio.duration) * 100;
+    seek.style.background = `linear-gradient(to right, #ff2e88 ${percent}%, #ddd ${percent}%)`;
+};
+
+seek.oninput = () => {
+    audio.currentTime = seek.value;
+};
+
+loadSong(0);
+render();
+</script>
+
+</body>
+</html>
